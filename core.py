@@ -60,14 +60,12 @@ class IDIOT_CSV_ :
         header = next(opened_file)
         return header.split(',')
     # createnew object 
-    def create_new_object():
-        print('+ enter the object name')
-        object_name = input('> ')
+    def create_new_object(object_name):
+        
         object_name = object_name+'.csv'
         files_in_database = os.listdir('data_base') # get all files in directory 
         if object_name in files_in_database:
-            print('+ object already exists')
-            return False
+            return 12  # dont want it to get mixed up as an error at the __init__file
         else : pass
         ### creating the new object ####
         try :
@@ -116,37 +114,89 @@ class IDIOT_CSV_ :
         except:
             return False
     # get all values from csv files
-    def get_all_values():
+    def get_all_values(password):
+        # getting hash from password
+        hash = ''
+        with open('password.txt','r') as f :
+            hash = f.readline()
+        # making mixed hash that is going to give us a list , the list it self is
+        # going to create our decoding dict
+        lisst , assci = IDIOT_Hashing.encode_apassword(password, hash)
+        mapdict , reverce_dicr = IDIOT_Hashing.load_hash_table(assci, lisst)
+        #---------------------------------------------
         output = ""
         files_in_directory = os.listdir('data_base/')
         for x in files_in_directory:
             if 'csv' in x :
                 output+= f"_________________{x}___________________\n"
+                
                 data = pd.read_csv(f'data_base/{x}')
+                for index, row in data.iterrows():
+                # Access and modify column values for the current row
+                    try:
+                        #getting the value of eatch password in eatch row decoded 
+                        data.loc[index, 'password'] = IDIOT_Hashing.decode(reverce_dicr, data.loc[index, 'password'])
+                    except:
+                        data.loc[index, 'password'] = "(can't decode)"
+                
+                
                 output+= data.to_string() + '\n'
         print(output)
     # get all values from a specific csv file
-    def get_all_values_from_file(file):
+    def get_all_values_from_file(file , reverce_dict):
         output = ""
         try :
             data = pd.read_csv(f'data_base/{file}.csv')
+            
             output+= data.to_string() + '\n'
             print(output)
         except:
             print('[x] object does not exist !')
-        
-
-
+    #show all objects
+    def get_all_objects():
+        try :
+            files_in_directory = os.listdir('data_base/')
+            for x in files_in_directory:
+                if ".csv" in x :
+                    print(f'==obj===>{x}')
+        except:
+            return False
+        return True 
+    # delete an object 
+    def delete_object(filename):
+        try :
+            files_in_directory = os.listdir('data_base/')
+            
+            for x in files_in_directory:
+                if ".csv" in x :
+                    if x == filename+'.csv' :
+                        os.remove(f'data_base/{x}')
+                        
+                        return True
+            return None
+        except:
+            return False
+    # change the name of an object
+    def change_name(filename, new_name):
+        files_in_directory = os.listdir('data_base/')
+        if filename+'csv' not in files_in_directory:
+            return None
+        else:
+            try:
+                os.rename(f'data_base/{filename}.csv',f'data_base/{new_name}.csv')
+                return True
+            except:
+                return False
+            
 
 #IDIOT_CSV_.get_all_values()
-IDIOT_CSV_.get_all_values_from_file('youtube')
+#IDIOT_CSV_.get_all_values_from_file('youtube')
 class IDIOT_Hashing:
     # check if hashed password eq to the hash value
     def password_is_valid(password):
         hashed_password = hashlib.sha256()
         hashed_password.update(password.encode('utf-8'))
         hashed_password = hashed_password.hexdigest()
-        print(hashed_password)
         with open('password.txt','r') as file :
             if hashed_password == file.readline().strip(' '):
                 return True 
@@ -156,6 +206,7 @@ class IDIOT_Hashing:
     def create_new_password():
         print("[*] Enter a stong password !")
         inp1 = ''
+        # get and make sure the password is what user want
         while True :
             inp1 = getpass.getpass('> ')
             print("Re Enter the password")
@@ -175,9 +226,11 @@ class IDIOT_Hashing:
                     break
             else:
                 print('[*] Passwords do not match , re enter the password')
+        # hash password with hashFunction sha256
         m = hashlib.sha256()
         m.update(inp1.encode('utf-8'))
         hashed = m.hexdigest()
+        # save the hash to the password and password_rec files
         with open(f"recovery/password_rec.txt",'w') as file:
             file.write(hashed)
         with open(f"password.txt",'w') as file:
@@ -218,7 +271,8 @@ class IDIOT_Hashing:
                                 flag= False
                             else:pass
                         if flag :
-                            lisst.append(hashed[x])
+                            if hashed[x].isalpha():
+                                lisst.append(hashed[x])
                         else: flag = True
                 if loop == 1 :
                     for x in range(10):
@@ -246,7 +300,7 @@ class IDIOT_Hashing:
                             flag = False
                         else:pass
                     if flag :
-                        if x == '*':pass # saving this special character for future use (*x*)= X  
+                        if x == '*' or x == ',':pass # saving this special character for future use (*x*)= X  and , to avoid error while writing to csv
                         else:
                             lisst.append(x)
                             len_+=1
@@ -258,16 +312,16 @@ class IDIOT_Hashing:
             return lisst , ascci_list
         else: 
             # wrong password 
-            return False
+            return False, False
     # load DICT , that maps every letter to its encoded value
     def load_hash_table(assci_list , encoding_lisst):
         map_dict = {}
         reverce_dict = {}
         # |0_0|
-        for x in range(len(asscilist)) :
-            map_dict[asscilist[x]] = encoding_lisst[x]
-        for x in range(len(asscilist)) :
-            reverce_dict[encoding_lisst[x]] = asscilist[x]
+        for x in range(len(assci_list)) :
+            map_dict[assci_list[x]] = encoding_lisst[x]
+        for x in range(len(assci_list)) :
+            reverce_dict[encoding_lisst[x]] = assci_list[x]
         return map_dict , reverce_dict
     # encode the password with the DICT 
     # note we're talking about the password that will be stored in the csv files 
@@ -278,7 +332,7 @@ class IDIOT_Hashing:
                 if x.isupper():# if it's upper add special characters to identify the uppercase from lowwer case characters
                     encoded_value+=f'*{DICT[x.lower()]}'
                 else:
-                    encoded_value+=f'{DICT[x.upper()]}'
+                    encoded_value+=f'{DICT[x]}'
             else:
                 encoded_value+=x # using numbers in this case will be a bad idea 
         return encoded_value     
@@ -292,14 +346,26 @@ class IDIOT_Hashing:
                 break
             if encoded_password[tracker] == '*':
                 tracker+=1
-                decoded_value += REVERCE_DICT[encoded_password[tracker]]
+                decoded_value += REVERCE_DICT[encoded_password[tracker]].upper()
 
             
             
             else:
-                decoded_value+= REVERCE_DICT[encoded_password[tracker]]
+                if  encoded_password[tracker].isnumeric():
+                    decoded_value+= encoded_password[tracker]
+                else:
+                    decoded_value+= REVERCE_DICT[encoded_password[tracker]]
                 
         return decoded_value    
+
+#input 
+class IDIOT_Input:
+    def __init__(self, input_):
+        self.input_ = input_
+    # clean the input out / and 
+    def clean_input(self):
+        self.input_ = self.input_.lstrip().rstrip().split()
+        return self.input_
 
 
 
