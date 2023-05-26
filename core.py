@@ -335,16 +335,15 @@ class IDIOT_Hashing:
             except:pass 
         print(f"""
         
-                PLZ COPY THIS HASHED PASSWORD AND SALT, AND STOR IT AS ADMIN IN A PLACE OF YOUR CHOICE ,
-                IF YOU LOSE THIS HASH OR SALT VALUE, AND SOMEHOW THE FILES (password.txt , password_rec.txt, salt.txt, salt_rec.txt) 
+                PLZ COPY THIS HASHED PASSWORD , AND STOR IT AS ADMIN IN A PLACE OF YOUR CHOICE ,
+                IF YOU LOSE THIS HASH , AND SOMEHOW THE FILES (password.txt , password_rec.txt) 
                 GOT CORUPTED IDIOT CAN'T DECODE THE  PASSWORDS ANYMORE !
                 ==============================================================================    
                 |   [+]HASHED PASSWORD = {hashed.decode('utf8')}  
-                |   [+]SALT VALUE = {salt.decode('utf8')}
                 ==============================================================================
 
             """)
-    # with the salt and hash > create a new hash > get a list of characters of len = 26 
+    # with the password  and hash > create a new hash > get a list of characters of len = 26 
     def encode_apassword(password, hash):
         
         #Flag = IDIOT_Hashing.password_is_valid(user_password)
