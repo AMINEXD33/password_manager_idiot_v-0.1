@@ -354,10 +354,13 @@ class IDIOT_Hashing:
             hashed.update(mix.encode('utf-8'))
             hashed = hashed.hexdigest()
             lisst = []
+
+            # hold until the end   >>> doint that to not refactor all this code -_-
+            hold = []
             # loop two times to try and get distinct 16 character from hash and 10 from password
             for loop in range(2):
                 if loop == 0 :
-                    for x in range(20):
+                    for x in range(64):
                         flag = True
                         for y in lisst:
                             if hashed[x] == y :
@@ -365,7 +368,7 @@ class IDIOT_Hashing:
                             else:pass
                         if flag :
                             if hashed[x].isalpha():
-                                lisst.append(hashed[x])
+                                hold.append(hashed[x])
                         else: flag = True
                 if loop == 1 :
                     for x in range(10):
@@ -380,6 +383,7 @@ class IDIOT_Hashing:
             
             # if the len of the lisst is not 25 yet #
             len_=len(lisst)
+            
             punctuation_list = string.punctuation
             
             # loop through the punctuation list to get what ever is left to complete len = 26 
@@ -387,7 +391,9 @@ class IDIOT_Hashing:
             if len_ != 36:
                 for x in punctuation_list:
                     flag = True
-                    if len_ == 36 : break
+                    if len_ == 36 : 
+                        lisst+=hold
+                        break
                     for y in lisst :
                         if x == y:
                             flag = False
@@ -398,6 +404,9 @@ class IDIOT_Hashing:
                             lisst.append(x)
                             len_+=1
                     else: flag = True
+            
+            
+            
             ascci_list = []
             
             for x in string.ascii_lowercase:

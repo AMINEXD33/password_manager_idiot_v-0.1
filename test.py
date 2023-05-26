@@ -4,18 +4,14 @@ import string
 #----- this is how idiot encode and decode passwords 
 #----- disclaimer : the first line is not gonna work if password does't match the hash
 
-# getting hash from password file
 
-print(string.punctuation)
-exit()
-hash = ''
 with open('password.txt','r') as file:
     hash = file.readline().strip(' ')
 
 print('[!]------> initiating DICTS for encodeing and decoding passwords , plz wait !')
-list, assci = core.IDIOT_Hashing.encode_apassword('aminemeftah22144',hash)
+list, assci = core.IDIOT_Hashing.encode_apassword('averageleagueoflegendsplayer21332',hash)
 mapdict , reverce_dict = core.IDIOT_Hashing.load_hash_table(assci, list)
-encoded_password = core.IDIOT_Hashing.encode(mapdict, '123321a@#$@!mine0tothe0amine')
+encoded_password = core.IDIOT_Hashing.encode(mapdict, 'hereisjohnny')
 decoded_password = core.IDIOT_Hashing.decode(reverce_dict, encoded_password)
 print(list , ascii)
 
