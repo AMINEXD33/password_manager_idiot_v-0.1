@@ -3,6 +3,9 @@ import pandas as pd
 import hashlib
 import getpass
 import string
+import bcrypt
+import random
+digits = ['0','1','2','3','4','5','6','7','8','9']
 
 class CHECK_FILES():
     # check if hash file exists 
@@ -21,7 +24,24 @@ class CHECK_FILES():
             if x == "password_rec.txt" :
                 return True 
         return False   
-    # copy the config to new recovery/password_rec
+    # check if salt file exits
+    def does_salt_file_exists():
+        full_path = str(os.getcwd())+'/salt'
+        files_in_directory = os.listdir(full_path)
+        for x in files_in_directory:
+            if x == "salt.txt" :
+                return True 
+        return False 
+    #check if salt_rec exists
+    def does_salt_rec_file_exists():
+        full_path = str(os.getcwd())+'/recovery'
+        files_in_directory = os.listdir(full_path)
+        for x in files_in_directory:
+            if x == "salt_rec.txt" :
+                return True 
+        return False
+    
+    # copy the password to new recovery/password_rec
     def from_password_fix_pass_rec():
         data = ''
         with open('password.txt','r') as file :
@@ -37,7 +57,7 @@ class CHECK_FILES():
         with open('password.txt','w') as file:
             file.write(data)
         return True  
-    # write empty recovery/password_rec and config or write with hash 
+    # write empty recovery/password_rec and password or write with hash 
     def write_recpass_and_password(flag,hash):
         # if flag write hash to files 
         if flag :
@@ -53,7 +73,37 @@ class CHECK_FILES():
             with open('password.txt','w') as file:
                 file.write('')
             return True 
-            
+    # copy the salt to salt_rec 
+    def from_salt_fix_salt_rec():
+        data = ''
+        with open('salt/salt.txt','r') as file :
+            data = file.readline()
+        with open('recovery/salt_rec.txt','w') as file:
+            file.write(data)
+        return True  
+    # copy the recovery salt to salt 
+    def from_salt_rec_fix_salt():
+        data = ''
+        with open('recovery/salt_rec.txt','r') as file :
+            data = file.readline()
+        with open('salt/salt.txt','w') as file:
+            file.write(data)
+        return True 
+    def write_recsalt_and_salt(flag,salt):
+        # if flag write hash to files 
+        if flag :
+            with open('recovery/salt_rec.txt','w') as file:
+                file.write(str(hash))
+            with open('salt/salt.txt','w') as file:
+                file.write(str(hash))
+            return True 
+        # if not flag write empty files 
+        elif not flag :
+            with open('recovery/salt_rec.txt','w') as file:
+                file.write('')
+            with open('salt/salt.txt','w') as file:
+                file.write('')
+            return True 
 class IDIOT_CSV_ :
     #get header 
     def get_header(opened_file):
@@ -101,28 +151,27 @@ class IDIOT_CSV_ :
             return True
         except:
             return False
-    def create_new_row(file ,values):
+    # create a row (username , password , email , and date )
+    def create_new_row(file ,values, dict ):
+        values[0]= IDIOT_Hashing.encode(dict , values[0])
+        values[1]= IDIOT_Hashing.encode(dict , values[1])
+        print(values)
         try :
-            data= pd.read_csv(f"data_base/{file}")
+            data= pd.read_csv(f"data_base/{file}.csv")
+            
             # Create values for the new row
             new_row_values = {'username': values[0],'password': values[1],'email': values[2],'date_joined': values[3]}
-
+            
             # Add the new row to the DataFrame
             data.loc[len(data)] = new_row_values
-            data.to_csv(f"data_base/{file}", index=False)
+            data.to_csv(f"data_base/{file}.csv", index=False)
             return True
         except:
+            print('[x] object does not exist !')
             return False
     # get all values from csv files
-    def get_all_values(password):
-        # getting hash from password
-        hash = ''
-        with open('password.txt','r') as f :
-            hash = f.readline()
-        # making mixed hash that is going to give us a list , the list it self is
-        # going to create our decoding dict
-        lisst , assci = IDIOT_Hashing.encode_apassword(password, hash)
-        mapdict , reverce_dicr = IDIOT_Hashing.load_hash_table(assci, lisst)
+    def get_all_values(reverce_dicr):
+        
         #---------------------------------------------
         output = ""
         files_in_directory = os.listdir('data_base/')
@@ -136,22 +185,35 @@ class IDIOT_CSV_ :
                     try:
                         #getting the value of eatch password in eatch row decoded 
                         data.loc[index, 'password'] = IDIOT_Hashing.decode(reverce_dicr, data.loc[index, 'password'])
+                        data.loc[index, 'username'] = IDIOT_Hashing.decode(reverce_dicr, data.loc[index, 'username'])
                     except:
                         data.loc[index, 'password'] = "(can't decode)"
+                        data.loc[index, 'username'] = "(can't decode)"
                 
                 
                 output+= data.to_string() + '\n'
         print(output)
     # get all values from a specific csv file
     def get_all_values_from_file(file , reverce_dict):
-        output = ""
+        output = ''
         try :
             data = pd.read_csv(f'data_base/{file}.csv')
-            
-            output+= data.to_string() + '\n'
-            print(output)
+            output+= f'-------------{file}------------\n'
+            for index, row in data.iterrows():
+            # Access and modify column values for the current row
+                try:
+                    #getting the value of eatch password in eatch row decoded 
+                    data.loc[index, 'password'] = IDIOT_Hashing.decode(reverce_dict, data.loc[index, 'password'])
+                    data.loc[index, 'username'] = IDIOT_Hashing.decode(reverce_dict, data.loc[index, 'username'])
+                except:
+                    data.loc[index, 'password'] = "(can't decode)"
+                    data.loc[index, 'username'] = "(can't decode)"
         except:
-            print('[x] object does not exist !')
+            print('[x]object does not exist')
+            return 
+        
+        output+= data.to_string() + '\n'
+        print(output)
     #show all objects
     def get_all_objects():
         try :
@@ -179,7 +241,7 @@ class IDIOT_CSV_ :
     # change the name of an object
     def change_name(filename, new_name):
         files_in_directory = os.listdir('data_base/')
-        if filename+'csv' not in files_in_directory:
+        if filename+'.csv' not in files_in_directory:
             return None
         else:
             try:
@@ -192,13 +254,32 @@ class IDIOT_CSV_ :
 #IDIOT_CSV_.get_all_values()
 #IDIOT_CSV_.get_all_values_from_file('youtube')
 class IDIOT_Hashing:
+    # make salt                 
+    def make_salt():
+        salt = bcrypt.gensalt(16)
+        
+        # stor salt
+        try:
+            with open('salt/salt.txt','w') as file:
+                file.write(salt.decode('utf-8'))
+            with open('recovery/salt_rec.txt','w') as file:
+                file.write(salt.decode('utf-8'))
+            return True
+        except:
+            return False
+    
     # check if hashed password eq to the hash value
     def password_is_valid(password):
-        hashed_password = hashlib.sha256()
-        hashed_password.update(password.encode('utf-8'))
-        hashed_password = hashed_password.hexdigest()
+        salt = ''
+        try :
+            with open('salt/salt.txt','r') as file:
+                salt = file.readline().strip(' ')
+        except:
+            print('[x] something went wrong while reading salt value')
+        print("[!] checking the password plz wait !")
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt.encode('utf-8'))
         with open('password.txt','r') as file :
-            if hashed_password == file.readline().strip(' '):
+            if hashed_password.decode('utf-8') == file.readline().strip(' '):
                 return True 
             else: 
                 return False
@@ -226,15 +307,24 @@ class IDIOT_Hashing:
                     break
             else:
                 print('[*] Passwords do not match , re enter the password')
+        #get salt 
+        salt = ''
+        try :
+            with open('salt/salt.txt','r') as file : 
+                salt = (file.readline().strip(' ')).encode('utf-8')
+                
+        except:
+            print('[x] reading salt failed ')
+            return False
         # hash password with hashFunction sha256
-        m = hashlib.sha256()
-        m.update(inp1.encode('utf-8'))
-        hashed = m.hexdigest()
+        print('[!] hashing the password plz wait !')
+        hashed = bcrypt.hashpw(inp1.encode('utf-8'), salt)
+        
         # save the hash to the password and password_rec files
         with open(f"recovery/password_rec.txt",'w') as file:
-            file.write(hashed)
+            file.write(hashed.decode('utf-8'))
         with open(f"password.txt",'w') as file:
-            file.write(hashed)
+            file.write(hashed.decode('utf-8'))
         if 'linux' in (sys.platform).lower(): 
             try : 
                 os.system('clear')
@@ -245,18 +335,22 @@ class IDIOT_Hashing:
             except:pass 
         print(f"""
         
-                PLZ COPY THIS HASHED PASSWORD AND STOR IT IN A PLACE OF YOUR CHOICE ,
-                IF YOU LOSE THIS HASH , AND SOMEHOW THE FILES (password.txt , password_rec.txt) GOT CORUPTED IDIOT CAN'T DECODE THE  PASSWORDS ANYMORE !
+                PLZ COPY THIS HASHED PASSWORD AND SALT, AND STOR IT AS ADMIN IN A PLACE OF YOUR CHOICE ,
+                IF YOU LOSE THIS HASH OR SALT VALUE, AND SOMEHOW THE FILES (password.txt , password_rec.txt, salt.txt, salt_rec.txt) 
+                GOT CORUPTED IDIOT CAN'T DECODE THE  PASSWORDS ANYMORE !
                 ==============================================================================    
-                |   [+]HASHED PASSWORD = {hashed}  |
+                |   [+]HASHED PASSWORD = {hashed.decode('utf8')}  
+                |   [+]SALT VALUE = {salt.decode('utf8')}
                 ==============================================================================
+
             """)
-    # with the password and hash > create a new hash  and from that hash > get a list of characters of len = 26 
-    def encode_apassword(user_password, hash):
+    # with the salt and hash > create a new hash > get a list of characters of len = 26 
+    def encode_apassword(password, hash):
         
-        Flag = IDIOT_Hashing.password_is_valid(user_password)
+        #Flag = IDIOT_Hashing.password_is_valid(user_password)
+        Flag = True
         if Flag :
-            mix = hash+user_password
+            mix = hash+password
             hashed = hashlib.sha256()
             hashed.update(mix.encode('utf-8'))
             hashed = hashed.hexdigest()
@@ -264,7 +358,7 @@ class IDIOT_Hashing:
             # loop two times to try and get distinct 16 character from hash and 10 from password
             for loop in range(2):
                 if loop == 0 :
-                    for x in range(16):
+                    for x in range(20):
                         flag = True
                         for y in lisst:
                             if hashed[x] == y :
@@ -278,11 +372,11 @@ class IDIOT_Hashing:
                     for x in range(10):
                         flag = True 
                         for y in lisst:
-                            if user_password[x] == y:
+                            if password[x] == y:
                                 flag = False
                             else:pass
                         if flag:
-                            lisst.append(user_password[x])
+                            lisst.append(password[x])
             
             
             # if the len of the lisst is not 25 yet #
@@ -291,10 +385,10 @@ class IDIOT_Hashing:
             
             # loop through the punctuation list to get what ever is left to complete len = 26 
             # were garanted to get the same 25 characters if the password and hash are correct 
-            if len_ != 26:
+            if len_ != 36:
                 for x in punctuation_list:
                     flag = True
-                    if len_ == 26 : break
+                    if len_ == 36 : break
                     for y in lisst :
                         if x == y:
                             flag = False
@@ -318,10 +412,18 @@ class IDIOT_Hashing:
         map_dict = {}
         reverce_dict = {}
         # |0_0|
+        # generating a dict {'a':'x', 'b':'x',.....,'z':'x'}
         for x in range(len(assci_list)) :
             map_dict[assci_list[x]] = encoding_lisst[x]
+        # adding {'0':'x', '1':'x', '2':'x ,.....,'9':'x'}
+        for x in range(10):
+            map_dict[digits[x]] = encoding_lisst[26+x]
+        # revercing the map_dict {'x':'a','x':'b',.......,'x':'z'}
         for x in range(len(assci_list)) :
             reverce_dict[encoding_lisst[x]] = assci_list[x]
+        # adding the digits also to the reverse dictionary
+        for x in range(10):
+            reverce_dict[encoding_lisst[x+26]] = digits[x]
         return map_dict , reverce_dict
     # encode the password with the DICT 
     # note we're talking about the password that will be stored in the csv files 
@@ -332,9 +434,9 @@ class IDIOT_Hashing:
                 if x.isupper():# if it's upper add special characters to identify the uppercase from lowwer case characters
                     encoded_value+=f'*{DICT[x.lower()]}'
                 else:
-                    encoded_value+=f'{DICT[x]}'
+                    encoded_value+=f'{DICT[x.lower()]}'
             else:
-                encoded_value+=x # using numbers in this case will be a bad idea 
+                encoded_value+=DICT[x] # using numbers in this case will be a bad idea 
         return encoded_value     
     # decode a password by using the reverce dict and the encoded_password
     def decode(REVERCE_DICT, encoded_password):
@@ -352,7 +454,7 @@ class IDIOT_Hashing:
             
             else:
                 if  encoded_password[tracker].isnumeric():
-                    decoded_value+= encoded_password[tracker]
+                    decoded_value+= REVERCE_DICT[tracker]
                 else:
                     decoded_value+= REVERCE_DICT[encoded_password[tracker]]
                 
@@ -366,6 +468,6 @@ class IDIOT_Input:
     def clean_input(self):
         self.input_ = self.input_.lstrip().rstrip().split()
         return self.input_
-
+    
 
 
