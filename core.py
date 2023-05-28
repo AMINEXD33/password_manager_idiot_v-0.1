@@ -163,7 +163,7 @@ class IDIOT_CSV_ :
     def create_new_row(file ,values, dict ):
         values[0]= IDIOT_Hashing.encode(dict , values[0])
         values[1]= IDIOT_Hashing.encode(dict , values[1])
-        print(values)
+        
         try :
             data= pd.read_csv(f"data_base/{file}.csv")
             
@@ -228,7 +228,7 @@ class IDIOT_CSV_ :
             files_in_directory = os.listdir('data_base/')
             for x in files_in_directory:
                 if ".csv" in x :
-                    print(f'==obj===>{x}')
+                    print(f'==obj===>{x}'.strip('.csv'))
         except:
             return False
         return True 

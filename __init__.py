@@ -299,9 +299,10 @@ if __name__ == "__main__":
                 
                 if len(command) == 5:
                     
-                    print(command)
+                    
                     try:
                         core.IDIOT_CSV_.create_new_row(command[1],[command[2],command[3],command[4],datetime.date.today().strftime("%d/%m/%Y")],dict_)
+                        print('[+] row created successfully !')
                     except:
                         print("[!] plz dont use special characters , reserved for encoding and decoding your passwords !")
                 else :
@@ -313,7 +314,6 @@ if __name__ == "__main__":
                 else:
                     print('[x] huh? \n[!]type help to see manual ')
             elif command[0] == 'updater':
-                print(command[1],command[5],[command[2],command[3],command[4],datetime.date.today()],dict_)
                 if len(command) == 6:
                     flag = core.IDIOT_CSV_.update_rowX_with(command[1],command[5],[command[2],command[3],command[4],datetime.date.today()],dict_)
                     
@@ -375,7 +375,8 @@ if __name__ == "__main__":
             
     # trying to authenticate user
     else:
-        # check files 
+        
+        # authenticate
         print('[?] Plz Enter your password !')
         password = get_password()
         flag = who_are_you(password)
