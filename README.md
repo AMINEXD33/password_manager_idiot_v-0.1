@@ -1,4 +1,6 @@
 # password_manager_idiot_v-0.1
+ONLY TESTED ON LINUX !
+NOT YET WINDOWS X
 
 required libraries:
  all the libraries used :[os,csv,sys,pandas,hashlib,getpass,string,bcrypt]  # random not used at all just forgot to remove it :)
