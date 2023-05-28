@@ -133,24 +133,32 @@ class IDIOT_CSV_ :
             return found.index[0] 
         except:
             return False  
-    def update_rowX_with(file , index_row, columns_indexs,value):
+    def update_rowX_with(file , index_row ,values, dict):
+        values[0]= IDIOT_Hashing.encode(dict , values[0])
+        values[1]= IDIOT_Hashing.encode(dict , values[1])
+        
+        
         try :
-            data= pd.read_csv(f"data_base/{file}")
-            data.iloc[index_row, columns_indexs ] = value
-            data.to_csv(f"data_base/{file}", index=False)
-            
+            data= pd.read_csv(f"data_base/{file}.csv")
+            try :
+                data.iloc[int(index_row), [0,1,2,3]] = values
+                data.to_csv(f"data_base/{file}.csv", index=False)
+            except:
+                print('[x] index out of range !')
             return True
         except:
-            return False
+            print('[x] object does not exist !')
     def delete_rowX(file , index_row):
         try :
-            data= pd.read_csv(f"data_base/{file}")
-            data = data.drop(index_row, axis=0)
-            data.to_csv(f"data_base/{file}", index=False)
-            
+            data= pd.read_csv(f"data_base/{file}.csv")
+            try :
+                data = data.drop(int(index_row), axis=0)
+                data.to_csv(f"data_base/{file}.csv", index=False)
+            except:
+                print('[x] index is out of range !')
             return True
         except:
-            return False
+            print('[x] object does not exist !')
     # create a row (username , password , email , and date )
     def create_new_row(file ,values, dict ):
         values[0]= IDIOT_Hashing.encode(dict , values[0])
@@ -251,8 +259,7 @@ class IDIOT_CSV_ :
                 return False
             
 
-#IDIOT_CSV_.get_all_values()
-#IDIOT_CSV_.get_all_values_from_file('youtube')
+
 class IDIOT_Hashing:
     # make salt                 
     def make_salt():
@@ -289,9 +296,9 @@ class IDIOT_Hashing:
         inp1 = ''
         # get and make sure the password is what user want
         while True :
-            inp1 = getpass.getpass('> ')
+            inp1 = getpass.getpass('> ').strip(' ')
             print("Re Enter the password")
-            inp2 = getpass.getpass('> ')
+            inp2 = getpass.getpass('> ').strip(' ')
             if inp1 == inp2 :
                 if len(inp1) <= 10 : 
                     if 'linux' in (sys.platform).lower(): 
@@ -316,7 +323,7 @@ class IDIOT_Hashing:
         except:
             print('[x] reading salt failed ')
             return False
-        # hash password with hashFunction sha256
+        # hash password with bcrypt
         print('[!] hashing the password plz wait !')
         hashed = bcrypt.hashpw(inp1.encode('utf-8'), salt)
         
@@ -335,9 +342,8 @@ class IDIOT_Hashing:
             except:pass 
         print(f"""
         
-                PLZ COPY THIS HASHED PASSWORD , AND STOR IT AS ADMIN IN A PLACE OF YOUR CHOICE ,
-                IF YOU LOSE THIS HASH , AND SOMEHOW THE FILES (password.txt , password_rec.txt) 
-                GOT CORUPTED IDIOT CAN'T DECODE THE  PASSWORDS ANYMORE !
+                Copy this value and store it with root permission so no one has access to it 
+                in case the password.txt and password_rec.txt got corupted !
                 ==============================================================================    
                 |   [+]HASHED PASSWORD = {hashed.decode('utf8')}  
                 ==============================================================================
@@ -349,69 +355,64 @@ class IDIOT_Hashing:
         #Flag = IDIOT_Hashing.password_is_valid(user_password)
         Flag = True
         if Flag :
-            mix = hash+password
+            mix = (hash+password).strip(' ')
             hashed = hashlib.sha256()
             hashed.update(mix.encode('utf-8'))
             hashed = hashed.hexdigest()
+            punct_lisst = [] #> this will be a variation of string.punctuation
+            password_distinct=[]#> this will be a set of distinct password characters
+            hash_distinct=[]#> this will be allw a variation of [a,b,c,d,e,f]
+            other_distinct = []# a variation that depends on the value of the password
             lisst = []
-
-            # hold until the end   >>> doint that to not refactor all this code -_-
-            hold = []
-            # loop two times to try and get distinct 16 character from hash and 10 from password
+           
+            
+            # loop two times to try and get distinct 64 character from hash and 10 from password
             for loop in range(2):
                 if loop == 0 :
                     for x in range(64):
-                        flag = True
-                        for y in lisst:
-                            if hashed[x] == y :
-                                flag= False
-                            else:pass
-                        if flag :
-                            if hashed[x].isalpha():
-                                hold.append(hashed[x])
-                        else: flag = True
+                        if hashed[x].isalpha():
+                            if hashed[x] not in password_distinct:
+                                if hashed[x] not in hash_distinct:
+                                    hash_distinct.append(hashed[x])
                 if loop == 1 :
                     for x in range(10):
-                        flag = True 
-                        for y in lisst:
-                            if password[x] == y:
-                                flag = False
-                            else:pass
-                        if flag:
-                            lisst.append(password[x])
+                        if password[x].isalpha():
+                            if password[x] not in password_distinct:
+                                if password[x] not in string.digits:
+                                    if password[x] not in hash_distinct:
+                                        password_distinct.append(password[x])
             
             
-            # if the len of the lisst is not 25 yet #
-            len_=len(lisst)
+            # if the summ of the lists is  not 36 yet #
+            len_=len(password_distinct)+len(hash_distinct)+len(punct_lisst)+len(other_distinct)
             
-            punctuation_list = string.punctuation
             
-            # loop through the punctuation list to get what ever is left to complete len = 26 
+            
+            # loop through the punctuation list to get what ever is left to complete len = 36 
             # were garanted to get the same 25 characters if the password and hash are correct 
-            if len_ != 36:
-                for x in punctuation_list:
-                    flag = True
-                    if len_ == 36 : 
-                        lisst+=hold
-                        break
-                    for y in lisst :
-                        if x == y:
-                            flag = False
-                        else:pass
-                    if flag :
-                        if x == '*' or x == ',':pass # saving this special character for future use (*x*)= X  and , to avoid error while writing to csv
-                        else:
-                            lisst.append(x)
-                            len_+=1
-                    else: flag = True
+            if len_ < 36:
+                for character in string.punctuation:
+                    if len_ < 36:
+                        if character not in punct_lisst:
+                            if character!='*' and character!=',' and character!='"':
+                                punct_lisst.append(character)
+                                len_+=1
+                    elif len == 36 : break
+                    else: pass
+                for character in string.ascii_lowercase:
+                    if len_ < 36 :
+                        if character not in password_distinct:
+                            if character not in hash_distinct and character.isalpha():
+                                other_distinct.append(character)
+                    elif len == 36 : break
+                
+            # generate the final list
+            for x  in [password_distinct, hash_distinct, punct_lisst,other_distinct]:
+                for xx in x:
+                    lisst.append(xx)
             
-            
-            
-            ascci_list = []
-            
-            for x in string.ascii_lowercase:
-                ascci_list.append(x)   
-            return lisst , ascci_list
+
+            return lisst , string.ascii_lowercase
         else: 
             # wrong password 
             return False, False
@@ -422,13 +423,13 @@ class IDIOT_Hashing:
         # |0_0|
         # generating a dict {'a':'x', 'b':'x',.....,'z':'x'}
         for x in range(len(assci_list)) :
-            map_dict[assci_list[x]] = encoding_lisst[x]
+            map_dict[assci_list[x]] = encoding_lisst[x].strip(' ')
         # adding {'0':'x', '1':'x', '2':'x ,.....,'9':'x'}
         for x in range(10):
             map_dict[digits[x]] = encoding_lisst[26+x]
         # revercing the map_dict {'x':'a','x':'b',.......,'x':'z'}
         for x in range(len(assci_list)) :
-            reverce_dict[encoding_lisst[x]] = assci_list[x]
+            reverce_dict[encoding_lisst[x].strip(' ')] = assci_list[x]
         # adding the digits also to the reverse dictionary
         for x in range(10):
             reverce_dict[encoding_lisst[x+26]] = digits[x]

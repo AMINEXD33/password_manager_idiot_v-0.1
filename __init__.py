@@ -9,6 +9,12 @@ if __name__ == "__main__":
     dict_,reverce_dict_ = None,None
     password = ''
     #-------
+    #clean passowrd 
+    def get_password():
+        password = getpass.getpass("[PASSWORD >]")
+        password = password.strip(' ')
+        return password
+
     #set up the files in first run 
     def setup_ ():
         print ("Setting up files") 
@@ -206,7 +212,7 @@ if __name__ == "__main__":
             |
             --- delete a row from an object --->>>     > deleter object_name INDEX
             |
-            --- update values of an object --->>>     > updatev object_name username password email INDEX
+            --- update values of an object --->>>     > updater object_name username password email INDEX
                 |
                 |
                 -------> too keep old values write same , example >> updatev facebook doom whoisthisghuy same 12
@@ -220,29 +226,20 @@ if __name__ == "__main__":
             print('[x] wrong password or hash is corrupted !')
             print("""
                 ----------------------------------------------------
-                    [!] reenter a valid password [1]
-                    [!] recover hash from password_recovery [2]
-                    [!] exit [anything]
+                    [!] recover hash from password_recovery [y/n]
                 ----------------------------------------------------
             """)
             choice = input('> ')
-            if choice == '1':
-                print('[?] Plz Enter your password !')
-                password = getpass.getpass("[PASSWORD]")
-                
-                return who_are_you(password)
-            elif choice == '2':
+            if choice == 'y':
                 fixed = core.CHECK_FILES.from_pass_rec_fix_passowd()
                 if fixed == True :
                     print('[+] hash recovered !')
-                    print('[?] Plz Enter your password !')
-                    password = getpass.getpass("[PASSWORD]")
-                    return who_are_you(password)
+                    print('[+] exiting !')
             else:
-                sys.exit()
-        if flag == True :
-            print('[+] Password is valid')
-            return True
+                print('[+] exiting !')
+        elif flag == True:
+            return True           
+            
     # all commands logic 
     def main_prog():
         while True :
@@ -268,7 +265,7 @@ if __name__ == "__main__":
                     elif flag == False:
                         print('[x] error     see core function (create_new_object)')
                 else: 
-                    print('[x] huh? \n[!]type help to create')
+                    print('[x] huh? \n[!]type help to see manual')
             elif command[0] == 'showob':
                 if len(command) == 1 :
                     flag = core.IDIOT_CSV_.get_all_objects()
@@ -285,6 +282,8 @@ if __name__ == "__main__":
                         print('[x] object does not exist in data_base ')
                     else:
                         print('[x] error at the function (delete_object)')    
+                else: 
+                    print('[x] huh? \n[!]type help to see manual')
             elif command[0] == 'renameob':
                 if len(command) == 3:
                     flag = core.IDIOT_CSV_.change_name(command[1], command[2])
@@ -293,7 +292,9 @@ if __name__ == "__main__":
                     elif flag==None:
                         print('[x] object does not exist in data_base')
                     elif flag == False:
-                        print('[x] error in the function (change_name')
+                        print('[x] error in the function (change_name)')
+                else: 
+                    print('[x] huh? \n[!]type help to see manual ')        
             elif command[0] == 'addv':
                 
                 if len(command) == 5:
@@ -304,7 +305,27 @@ if __name__ == "__main__":
                     except:
                         print("[!] plz dont use special characters , reserved for encoding and decoding your passwords !")
                 else :
-                    print('[x] huh? \n[!]type help to get manual ')
+                    print('[x] huh? \n[!]type help to see manual ')
+            elif command[0] == 'deleter':
+                if len(command) == 3:
+                    flag = core.IDIOT_CSV_.delete_rowX(command[1],command[2])    
+                    if flag :print(f'[+] row {command[2]} deleted !')
+                else:
+                    print('[x] huh? \n[!]type help to see manual ')
+            elif command[0] == 'updater':
+                print(command[1],command[5],[command[2],command[3],command[4],datetime.date.today()],dict_)
+                if len(command) == 6:
+                    flag = core.IDIOT_CSV_.update_rowX_with(command[1],command[5],[command[2],command[3],command[4],datetime.date.today()],dict_)
+                    
+                    if flag :print('[+] row updated successfully !')
+                else: 
+                    print('[x] huh? \n[!]type help to see manual ')
+            elif command[0] == 'exit':
+                print('[!] exiting !')
+                sys.exit(0)
+            else:
+                print('[x] uknown command \n[!]type help to see manual')
+            
     #----------------------------------------------------------------
 
     #this flag will indecate if the hash and password are valid 
@@ -346,7 +367,7 @@ if __name__ == "__main__":
             del readconfig
             # authenticate user
             print('[?] Plz Enter your password !')
-            password = getpass.getpass("[PASSWORD]")
+            password = get_password()
             flag = who_are_you(password)
         else:
             print('[error] while setting up EXITING !')
@@ -356,7 +377,7 @@ if __name__ == "__main__":
     else:
         # check files 
         print('[?] Plz Enter your password !')
-        password = getpass.getpass("[PASSWORD]")
+        password = get_password()
         flag = who_are_you(password)
     
     if flag == True :
