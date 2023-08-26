@@ -213,10 +213,8 @@ if __name__ == "__main__":
             --- delete a row from an object --->>>     > deleter object_name INDEX
             |
             --- update values of an object --->>>     > updater object_name username password email INDEX
-                |
-                |
-                -------> too keep old values write same , example >> updatev facebook doom whoisthisghuy same 12
-            
+            |
+            --- clear --->>>    > to clear the terminal
         """)
     # this function will take care of authanticating the user , and help if the hash is wrong or missing
     def who_are_you(password):
@@ -323,6 +321,15 @@ if __name__ == "__main__":
             elif command[0] == 'exit':
                 print('[!] exiting !')
                 sys.exit(0)
+            elif command[0] == 'clear':
+                if 'linux' in (sys.platform).lower(): 
+                    try : 
+                        os.system('clear')
+                    except:pass
+                elif 'win' in (sys.platform).lower():
+                    try :
+                        os.system('cls')
+                    except:pass
             else:
                 print('[x] uknown command \n[!]type help to see manual')
             
