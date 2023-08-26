@@ -1,5 +1,4 @@
 # password_manager_idiot_v-0.1
-ONLY TESTED ON LINUX !
 
 
 
