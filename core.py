@@ -4,8 +4,8 @@ import hashlib
 import getpass
 import string
 import bcrypt
-import random
-digits = ['0','1','2','3','4','5','6','7','8','9']
+
+
 
 class CHECK_FILES():
     # check if hash file exists
@@ -421,13 +421,13 @@ class IDIOT_Hashing:
             map_dict[assci_list[x]] = encoding_lisst[x].strip(' ')
         # adding {'0':'x', '1':'x', '2':'x ,.....,'9':'x'}
         for x in range(10):
-            map_dict[digits[x]] = encoding_lisst[26+x]
+            map_dict[string.digits[x]] = encoding_lisst[26+x]
         # revercing the map_dict {'x':'a','x':'b',.......,'x':'z'}
         for x in range(len(assci_list)) :
             reverce_dict[encoding_lisst[x].strip(' ')] = assci_list[x]
         # adding the digits also to the reverse dictionary
         for x in range(10):
-            reverce_dict[encoding_lisst[x+26]] = digits[x]
+            reverce_dict[encoding_lisst[x+26]] = string.digits[x]
         return map_dict , reverce_dict
     # encode the password with the DICT
     # note we're talking about the password that will be stored in the csv files
